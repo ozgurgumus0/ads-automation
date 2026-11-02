@@ -1,0 +1,38 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*service_account*.json
+credentials*.json
+token*.json
+*.pem
+*.key
+
+# Data, logs and generated deliverables (never commit these)
+data/
+output/
+*.csv
+*.csv.gz
+*.parquet
+*.xlsx
+*.xls
+*.jsonl
+*.pdf
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Apps Script / clasp
+.clasp.json
+node_modules/

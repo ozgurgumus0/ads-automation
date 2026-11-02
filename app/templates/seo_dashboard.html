@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEO · SEO &amp; GEO</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #58a6ff; --blue-dim: #1f6feb;
+      --green: #3fb950; --red: #f85149; --yellow: #d29922; --muted: #8b949e; --text: #e6edf3; --text-sub: #7d8590;
+      --accent: #FFC229;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.5; }
+    body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 32px 16px 64px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .topnav { width: 100%; max-width: 740px; margin-bottom: 18px; font-size: 13px; }
+    .header { text-align: center; margin-bottom: 28px; }
+    .header .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .header .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #E5A800, var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p { color: var(--text-sub); font-size: 13px; letter-spacing: 0.5px; }
+
+    .card { width: 100%; max-width: 740px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .card-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+    .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .link-btn { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 9px; padding: 14px 16px; background: var(--bg); color: var(--text); }
+    .link-btn:hover { border-color: var(--accent); text-decoration: none; }
+    .link-btn strong { font-size: 14px; }
+    .link-btn span { font-size: 12px; color: var(--text-sub); }
+    .link-btn.disabled { opacity: .5; pointer-events: none; }
+
+    .sched { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; }
+    .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .stat-value { font-size: 16px; font-weight: 600; margin-top: 2px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+    th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 0 8px 8px; }
+    td { padding: 9px 8px; border-top: 1px solid var(--border); vertical-align: top; }
+    td.msg { color: var(--text-sub); font-size: 12px; max-width: 260px; }
+    .pill { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; font-weight: 600; }
+    .pill.ok { background: rgba(63,185,80,.15); color: var(--green); }
+    .pill.error { background: rgba(248,81,73,.15); color: var(--red); }
+    .pill.pending { background: rgba(210,153,34,.15); color: var(--yellow); }
+    .pill.none { background: rgba(139,148,158,.15); color: var(--muted); }
+
+    .source-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+    .source-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .source-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 14px; cursor: pointer; }
+    .source-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .source-btn.active { background: rgba(255,194,41,.12); border-color: var(--accent); color: var(--accent); }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-sub); margin-bottom: 20px; }
+    .check input { margin-top: 3px; accent-color: var(--accent); }
+    .run-btn { width: 100%; border: 0; border-radius: 9px; background: var(--accent); color: #0d1117; font-size: 15px; font-weight: 700; padding: 12px; cursor: pointer; }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .ghost-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; font-size: 12px; font-weight: 600; padding: 5px 12px; cursor: pointer; }
+    .ghost-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    .terminal { background: #010409; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.6; max-height: 380px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; color: #c9d1d9; min-height: 60px; }
+    .terminal .err { color: var(--red); } .terminal .ok { color: var(--green); } .terminal .dim { color: var(--text-sub); }
+
+    .cred-field { margin-bottom: 14px; }
+    .cred-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .cred-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: 13px; padding: 9px 12px; outline: none; }
+    .cred-field input:focus { border-color: var(--accent); }
+    .hint { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+    .save-msg { font-size: 13px; margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="topnav"><a href="/">&larr; Ads Sync</a></nav>
+
+  <header class="header">
+    <div class="logo"><div class="logo-icon">&#9728;</div><h1>SEO &middot; SEO &amp; GEO</h1></div>
+    <p>GA4 &middot; Search Console &middot; Peec &middot; CRM organic &rarr; SEO-dashboard sheet &rarr; SEO &amp; GEO dashboard</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">Open</div>
+    <div class="links">
+      <a class="link-btn disabled" id="lnkDash" target="_blank" rel="noopener"><strong>SEO &amp; GEO dashboard &nearr;</strong><span>What SEO opens</span></a>
+      <a class="link-btn disabled" id="lnkSheet" target="_blank" rel="noopener"><strong>SEO-dashboard sheet &nearr;</strong><span>The data (edit only the priorities tab)</span></a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Morning refresh</div>
+    <div class="sched">
+      <div class="stat-box"><div class="stat-label">Next run</div><div class="stat-value" id="schNext">—</div></div>
+      <div class="stat-box"><div class="stat-label">Last run</div><div class="stat-value" id="schLast">—</div></div>
+      <div class="stat-box"><div class="stat-label">Last result</div><div class="stat-value" id="schRes">—</div></div>
+    </div>
+    <div class="hint" style="margin-top:10px">Task Scheduler &ldquo;ads_automation - SEO daily&rdquo;: every day at 07:30, catches up if the laptop was off. Log: <code>logs\seo_daily.log</code></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">Sources <button class="ghost-btn" id="btnStatus" style="margin-left:auto">Reload</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Source</th><th>Status</th><th>Last update</th><th>Data</th><th>Note</th></tr></thead>
+      <tbody id="statusBody"><tr><td colspan="5" class="msg">Loading…</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Refresh now</div>
+    <div class="source-label">Sources <span style="font-weight:400;color:#6e7681;text-transform:none">(click to toggle)</span></div>
+    <div class="source-group" id="srcGroup">
+      {% for key, label in sources.items() %}<button class="source-btn active" data-src="{{ key }}">{{ label }}</button>{% endfor %}
+    </div>
+    <label class="check"><input type="checkbox" id="chkFull"><span><strong style="color:var(--text)">Refetch the whole history</strong> (from Jan 2025). Only needed after changing the rules or the first time Search Console is connected. Slow: about 30 minutes. Normally each run refreshes the last 40 days and keeps everything older.</span></label>
+    <button class="run-btn" id="btnRun">Refresh now</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Log</div>
+    <div class="terminal" id="term"><span class="dim">No run started from this page yet.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Settings</div>
+    <div class="cred-field"><label>SEO-dashboard sheet ID</label><input type="text" id="cfgSheet" autocomplete="off" /></div>
+    <div class="cred-field"><label>Peec personal access token</label><input type="password" id="cfgPeec" autocomplete="off" placeholder="leave empty to keep the current one" />
+      <div class="hint" id="peecHint"></div></div>
+    <div class="source-label" style="margin-top:14px">Snowflake (organic leads)</div>
+    <div class="cred-field"><label>Account</label><input type="text" id="cfgSfAccount" autocomplete="off" /></div>
+    <div class="cred-field"><label>User (your company email)</label><input type="text" id="cfgSfUser" autocomplete="off" /></div>
+    <div class="cred-field"><label>Role</label><input type="text" id="cfgSfRole" autocomplete="off" /></div>
+    <div class="cred-field"><label>Warehouse</label><input type="text" id="cfgSfWh" autocomplete="off" /></div>
+    <div class="cred-field"><label>Database</label><input type="text" id="cfgSfDb" autocomplete="off" /></div>
+    <button class="ghost-btn" id="btnSave">Save settings</button><span class="save-msg" id="saveMsg"></span>
+    <div style="margin-top:14px"><button class="ghost-btn" id="btnSfLogin">Log in to Snowflake</button><span class="save-msg" id="sfMsg"></span></div>
+    <div class="hint" style="margin-top:6px">Snowflake uses your company SSO in the browser; the login is cached for a few hours. If the Snowflake source shows an error, click here, finish the login in the browser tab that opens, then &ldquo;Refresh now&rdquo; with only Snowflake selected. Only counts per day / page / product are read, never anything about a person.</div>
+    <div class="hint" style="margin-top:12px">Search Console: works as soon as <code>&lt;your-service-account&gt;@&lt;project&gt;.iam.gserviceaccount.com</code> is a user on sc-domain:example.com and the Search Console API is enabled in its Google Cloud project. Nothing to set here.</div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+async function loadStatus() {
+  try {
+    const r = await (await fetch("/seo/status")).json();
+    if (r.dashboard_url) { $("lnkDash").href = r.dashboard_url; $("lnkDash").classList.remove("disabled"); }
+    if (r.sheet_url) { $("lnkSheet").href = r.sheet_url; $("lnkSheet").classList.remove("disabled"); }
+    const s = r.schedule || {};
+    $("schNext").textContent = s.next || "not scheduled";
+    $("schLast").textContent = s.last || "—";
+    $("schRes").innerHTML = s.result === undefined ? "—" : (s.result === 0 ? '<span class="pill ok">OK</span>' : '<span class="pill error">code ' + esc(s.result) + "</span>");
+    $("statusBody").innerHTML = r.error ? `<tr><td colspan="5" class="msg">Could not read the sheet: ${esc(r.error)}</td></tr>` :
+      r.sources.map(x => {
+        const pending = x.source === "gsc" && x.status !== "ok";
+        const cls = x.status === "ok" ? "ok" : pending ? "pending" : x.status ? "error" : "none";
+        const txt = x.status === "ok" ? "OK" : pending ? "waiting for access" : x.status ? "error" : "not run yet";
+        const note = pending ? "The service account isn't a Search Console user yet." : (x.message || "");
+        const span = x.first_date ? `${esc(x.first_date)} → ${esc(x.last_date)}` : "—";
+        return `<tr><td><strong>${esc(x.label)}</strong></td><td><span class="pill ${cls}">${txt}</span></td><td>${esc(x.last_run || "—")}</td><td>${span}</td><td class="msg">${esc(note.slice(0, 160))}</td></tr>`;
+      }).join("");
+    if (r.running && !$("btnRun").dataset.mine) { $("btnRun").disabled = true; $("btnRun").textContent = "A refresh is running…"; }
+    else if (!$("btnRun").dataset.mine) { $("btnRun").disabled = false; $("btnRun").textContent = "Refresh now"; }
+  } catch (e) { $("statusBody").innerHTML = `<tr><td colspan="5" class="msg">Error: ${esc(e.message)}</td></tr>`; }
+}
+
+document.querySelectorAll("#srcGroup .source-btn").forEach(b => b.onclick = () => b.classList.toggle("active"));
+
+$("btnRun").onclick = async () => {
+  const only = [...document.querySelectorAll("#srcGroup .source-btn.active")].map(b => b.dataset.src);
+  if (!only.length) { alert("Pick at least one source."); return; }
+  const full = $("chkFull").checked;
+  if (full && !confirm("Refetch the whole history? It takes about 30 minutes.")) return;
+  const btn = $("btnRun"); btn.disabled = true; btn.dataset.mine = "1"; btn.textContent = "Refreshing…";
+  const term = $("term"); term.innerHTML = "";
+  try {
+    const resp = await fetch("/seo/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ only, full }) });
+    const reader = resp.body.getReader(), dec = new TextDecoder(); let buf = "";
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split("\n\n"); buf = parts.pop();
+      for (const p of parts) {
+        const line = p.replace(/^data: ?/, ""); if (line === "__DONE__") continue;
+        const cls = /ERROR|error|Traceback|already running/.test(line) ? "err" : /Done\.|exit code 0/.test(line) ? "ok" : "";
+        term.insertAdjacentHTML("beforeend", `<div class="${cls}">${esc(line)}</div>`); term.scrollTop = term.scrollHeight;
+      }
+    }
+  } catch (e) { term.insertAdjacentHTML("beforeend", `<div class="err">${esc(e.message)}</div>`); }
+  delete btn.dataset.mine; btn.disabled = false; btn.textContent = "Refresh now";
+  loadStatus();
+};
+
+const SF_FIELDS = [["cfgSfAccount", "SNOWFLAKE_ACCOUNT"], ["cfgSfUser", "SNOWFLAKE_USER"], ["cfgSfRole", "SNOWFLAKE_ROLE"],
+                   ["cfgSfWh", "SNOWFLAKE_WAREHOUSE"], ["cfgSfDb", "SNOWFLAKE_DATABASE"]];
+async function loadConfig() {
+  const c = await (await fetch("/seo/config")).json();
+  $("cfgSheet").value = c.SEO_SHEETS_ID || "";
+  SF_FIELDS.forEach(([id, key]) => $(id).value = c[key] || "");
+  $("peecHint").textContent = c.PEEC_PAT ? "A token is saved. Type a new one only to replace it." : "No token saved: Peec won't refresh.";
+}
+$("btnSave").onclick = async () => {
+  const body = { SEO_SHEETS_ID: $("cfgSheet").value.trim() };
+  if ($("cfgPeec").value.trim()) body.PEEC_PAT = $("cfgPeec").value.trim();
+  SF_FIELDS.forEach(([id, key]) => { if ($(id).value.trim()) body[key] = $(id).value.trim(); });
+  const r = await (await fetch("/seo/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).json();
+  $("saveMsg").textContent = r.ok ? "Saved." : (r.error || "Not saved");
+  $("saveMsg").style.color = r.ok ? "var(--green)" : "var(--red)";
+  $("cfgPeec").value = ""; loadConfig(); loadStatus();
+};
+$("btnSfLogin").onclick = async () => {
+  const b = $("btnSfLogin"), m = $("sfMsg"); b.disabled = true; m.style.color = ""; m.textContent = "Waiting for the login in the browser…";
+  try {
+    const r = await (await fetch("/seo/snowflake/login", { method: "POST" })).json();
+    m.textContent = r.ok ? `Connected as ${r.user} (${r.role}).` : "Not connected: " + r.error;
+    m.style.color = r.ok ? "var(--green)" : "var(--red)";
+  } catch (e) { m.textContent = e.message; m.style.color = "var(--red)"; }
+  b.disabled = false;
+};
+$("btnStatus").onclick = loadStatus;
+
+loadStatus(); loadConfig();
+setInterval(loadStatus, 30000);
+</script>
+</body>
+</html>

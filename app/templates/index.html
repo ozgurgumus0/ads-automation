@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ads Sync</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --card:      #161b22;
+      --border:    #30363d;
+      --blue:      #58a6ff;
+      --blue-dim:  #1f6feb;
+      --green:     #3fb950;
+      --red:       #f85149;
+      --yellow:    #d29922;
+      --muted:     #8b949e;
+      --text:      #e6edf3;
+      --text-sub:  #7d8590;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 32px 16px 64px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .header .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--blue-dim), var(--blue));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .header p {
+      color: var(--text-sub);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 740px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Date row ── */
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input[type="date"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      color-scheme: dark;
+    }
+    .field input[type="date"]:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+    }
+
+    /* ── Preset buttons ── */
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .preset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(88,166,255,0.08);
+    }
+
+    /* ── Source toggles ── */
+    .source-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .source-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .source-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .source-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .source-btn.active {
+      background: rgba(88,166,255,0.15);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    /* ── Target toggle (Test / Production) ── */
+    .target-btn.active[data-target="test"] {
+      background: rgba(88,166,255,0.15);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .target-btn.active[data-target="production"] {
+      background: rgba(248,81,73,0.12);
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .target-btn[data-target="production"]:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .target-hint {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin: -16px 0 22px;
+      min-height: 16px;
+    }
+    .target-hint.danger { color: var(--red); }
+
+    /* ── Run button ── */
+    .run-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #1f6feb, #58a6ff);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 13px 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+    .run-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .run-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .run-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* ── Spinner ── */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .run-btn.running .spinner { display: block; }
+
+    /* ── Log card ── */
+    .log-card { display: none; }
+    .log-card.visible { display: block; }
+
+    .terminal {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      max-height: 420px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .terminal::-webkit-scrollbar { width: 6px; }
+    .terminal::-webkit-scrollbar-track { background: transparent; }
+    .terminal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .log-line { display: flex; gap: 10px; }
+    .log-ts {
+      color: #484f58;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .log-text { word-break: break-all; }
+    .log-text.c-green  { color: var(--green); }
+    .log-text.c-red    { color: var(--red); }
+    .log-text.c-yellow { color: var(--yellow); }
+    .log-text.c-muted  { color: var(--muted); }
+
+    /* blinking cursor */
+    @keyframes blink { 50% { opacity: 0; } }
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 13px;
+      background: var(--blue);
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+      border-radius: 1px;
+    }
+
+    /* ── Summary card ── */
+    .summary-card { display: none; }
+    .summary-card.visible { display: block; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red   { color: var(--red); }
+
+    .status-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-banner.success {
+      background: rgba(63,185,80,0.1);
+      border: 1px solid rgba(63,185,80,0.3);
+      color: var(--green);
+    }
+    .status-banner.error {
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.3);
+      color: var(--red);
+    }
+
+    /* ── Credentials panel ── */
+    .cred-toggle {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+    .cred-toggle:hover { border-color: var(--blue); color: var(--blue); }
+    .cred-toggle .chevron { transition: transform 0.2s; font-style: normal; }
+    .cred-toggle.open .chevron { transform: rotate(180deg); }
+    .cred-body { display: none; margin-bottom: 20px; }
+    .cred-body.open { display: block; }
+    .cred-field { margin-bottom: 14px; }
+    .cred-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .cred-input-wrap { display: flex; gap: 6px; }
+    .cred-input-wrap input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .cred-input-wrap input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+    }
+    .cred-vis-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px 11px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .cred-vis-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .cred-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .save-cred-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 24px;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .save-cred-btn:hover { background: rgba(63,185,80,0.1); }
+    .save-cred-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cred-status {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+      min-height: 18px;
+      text-align: center;
+    }
+    .cred-status.ok  { color: var(--green); }
+    .cred-status.err { color: var(--red); }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .date-row { grid-template-columns: 1fr; }
+      .source-group { gap: 6px; }
+      .source-btn { padding: 7px 13px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <h1>Ads Sync</h1>
+    </div>
+    <p>Fetch &middot; Transform &middot; Sync to Google Sheets</p>
+    <p style="margin-top:8px"><a href="/seo" style="color:#FFC229;text-decoration:none;font-weight:600">SEO &middot; SEO &amp; GEO &rarr;</a></p>
+  </header>
+
+  <!-- Credentials card -->
+  <div class="card">
+    <button class="cred-toggle" id="credToggle">
+      <span>&#128273; API Credentials</span>
+      <i class="chevron">&#9662;</i>
+    </button>
+    <div class="cred-body" id="credBody">
+
+      <div class="cred-section-label">Meta Ads</div>
+      <div class="cred-field">
+        <label>Access Token</label>
+        <div class="cred-input-wrap">
+          <input type="password" id="cred_META_ACCESS_TOKEN" placeholder="EAAXBq..." autocomplete="off" />
+          <button class="cred-vis-btn" data-target="cred_META_ACCESS_TOKEN">&#128065;</button>
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>Ad Account ID</label>
+        <div class="cred-input-wrap">
+          <input type="text" id="cred_META_AD_ACCOUNT_ID" placeholder="act_123456789" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="cred-section-label">Outbrain</div>
+      <div class="cred-field">
+        <label>API Key</label>
+        <div class="cred-input-wrap">
+          <input type="password" id="cred_OUTBRAIN_API_KEY" placeholder="MTc3M..." autocomplete="off" />
+          <button class="cred-vis-btn" data-target="cred_OUTBRAIN_API_KEY">&#128065;</button>
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>Account ID</label>
+        <div class="cred-input-wrap">
+          <input type="text" id="cred_OUTBRAIN_ACCOUNT_ID" placeholder="00e53a..." autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="cred-section-label">Google Ads</div>
+      <div class="cred-field">
+        <label>Refresh Token</label>
+        <div class="cred-input-wrap">
+          <input type="password" id="cred_GOOGLE_ADS_REFRESH_TOKEN" placeholder="1//03ej..." autocomplete="off" />
+          <button class="cred-vis-btn" data-target="cred_GOOGLE_ADS_REFRESH_TOKEN">&#128065;</button>
+        </div>
+      </div>
+
+      <div class="cred-section-label">TikTok Ads <span style="font-weight:400;color:#94a3b8;font-size:11px;">(pending API access)</span></div>
+      <div class="cred-field">
+        <label>Access Token</label>
+        <div class="cred-input-wrap">
+          <input type="password" id="cred_TIKTOK_ACCESS_TOKEN" placeholder="paste once approved..." autocomplete="off" />
+          <button class="cred-vis-btn" data-target="cred_TIKTOK_ACCESS_TOKEN">&#128065;</button>
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>Advertiser ID</label>
+        <div class="cred-input-wrap">
+          <input type="text" id="cred_TIKTOK_ADVERTISER_ID" placeholder="7123456789012345" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="cred-section-label">Google Sheets</div>
+      <div class="cred-field">
+        <label>Spreadsheet ID</label>
+        <div class="cred-input-wrap">
+          <input type="text" id="cred_GOOGLE_SHEETS_ID" placeholder="1qsG_na..." autocomplete="off" />
+        </div>
+      </div>
+      <div class="cred-field">
+        <label>WhatsApp Spreadsheet ID</label>
+        <div class="cred-input-wrap">
+          <input type="text" id="cred_WHATSAPP_SHEETS_ID" placeholder="separate sheet for the WHATSAPP source" autocomplete="off" />
+        </div>
+      </div>
+
+      <button class="save-cred-btn" id="saveCredBtn">Save Credentials</button>
+      <div class="cred-status" id="credStatus"></div>
+    </div>
+  </div>
+
+  <!-- Config card -->
+  <div class="card">
+    <div class="card-title">Configuration</div>
+
+    <div class="date-row">
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" id="startDate" />
+      </div>
+      <div class="field">
+        <label>End Date</label>
+        <input type="date" id="endDate" />
+      </div>
+    </div>
+
+    <div class="presets">
+      <button class="preset-btn" data-preset="yesterday">Yesterday</button>
+      <button class="preset-btn" data-preset="last7">Last 7 Days</button>
+      <button class="preset-btn" data-preset="last30">Last 30 Days</button>
+      <button class="preset-btn" data-preset="last2months">Last 2 Months</button>
+      <button class="preset-btn" data-preset="mtd">Month to Date</button>
+      <button class="preset-btn" data-preset="cutoff">Cutoff to Date</button>
+      <button class="preset-btn" data-preset="ytd">Year to Date</button>
+      <button class="preset-btn" data-preset="year-2025">Full 2025</button>
+      <button class="preset-btn" data-preset="year-2024">Full 2024</button>
+      <button class="preset-btn" data-preset="year-2023">Full 2023</button>
+    </div>
+
+    <div class="source-label">Data Source <span style="font-weight:400;color:#94a3b8;font-size:11px;">(pick one or more)</span></div>
+    <div class="source-group">
+      <button class="source-btn active" data-source="ALL">ALL</button>
+      <button class="source-btn active" data-source="META">META</button>
+      <button class="source-btn active" data-source="GOOGLE ADS">GOOGLE ADS</button>
+      <button class="source-btn active" data-source="OUTBRAIN">OUTBRAIN</button>
+      <button class="source-btn active" data-source="TIKTOK" title="Runs once credentials are pasted in above — no-ops (skips) until then">TIKTOK</button>
+      <button class="source-btn active" data-source="WHATSAPP" title="GA4 WhatsApp slider → the separate WhatsApp sheet. Always full history; ignores the dates and the destination below">WHATSAPP</button>
+    </div>
+
+    <div class="source-label">Destination Sheet</div>
+    <div class="source-group">
+      <button class="source-btn target-btn active" data-target="test">TEST (Claude Pull)</button>
+      <button class="source-btn target-btn" data-target="production">PRODUCTION</button>
+    </div>
+    <div class="target-hint" id="targetHint">Writes to <strong>Sheet1</strong> / <strong>outbrain</strong> tabs in the test sheet.</div>
+
+    <button class="run-btn" id="runBtn">
+      <div class="spinner"></div>
+      <span id="runBtnText">Fetch Data</span>
+    </button>
+  </div>
+
+  <!-- Log card -->
+  <div class="card log-card" id="logCard">
+    <div class="card-title">Output Log</div>
+    <div class="terminal" id="terminal">
+      <span class="cursor"></span>
+    </div>
+  </div>
+
+  <!-- Summary card -->
+  <div class="card summary-card" id="summaryCard">
+    <div class="card-title">Summary</div>
+    <div class="summary-grid">
+      <div class="stat-box">
+        <div class="stat-label">Rows Fetched</div>
+        <div class="stat-value" id="statFetched">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Rows Written</div>
+        <div class="stat-value" id="statWritten">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Sources Run</div>
+        <div class="stat-value" id="statSources">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Duration</div>
+        <div class="stat-value" id="statDuration">—</div>
+      </div>
+    </div>
+    <div class="status-banner" id="statusBanner"></div>
+  </div>
+
+  <!-- Archive & Trim card -->
+  <div class="card">
+    <div class="card-title">Archive Old Data</div>
+    <div style="font-size:13px;color:var(--text-sub);margin-bottom:16px" id="archiveCurrentInfo">Loading current archive status…</div>
+    <div class="date-row" style="grid-template-columns:1fr">
+      <div class="field">
+        <label>New Cutoff Date</label>
+        <input type="date" id="archiveCutoffInput" />
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-sub);margin-bottom:16px">
+      Moves everything dated before this date out of the live production sheet (main_metrics, main_metrics_outbrain, New_Data) into the archive spreadsheet, and trims the live sheet down. Must be after the current cutoff — archive and live ranges can never overlap.
+    </div>
+    <button class="run-btn" id="archiveBtn" style="background:linear-gradient(135deg, #9a3412, #d29922)">
+      <div class="spinner" id="archiveSpinner"></div>
+      <span id="archiveBtnText">Archive &amp; Trim</span>
+    </button>
+  </div>
+
+  <!-- Archive log card -->
+  <div class="card log-card" id="archiveLogCard">
+    <div class="card-title">Archive Log</div>
+    <div class="terminal" id="archiveTerminal">
+      <span class="cursor"></span>
+    </div>
+  </div>
+
+  <!-- Creative feed card (Snowflake cohort export) -->
+  <div class="card">
+    <div class="card-title">Creative Feed · Snowflake cohort</div>
+    <div style="font-size:13px;color:var(--text-sub);margin-bottom:12px" id="feedInfo">Loading…</div>
+    <div style="font-size:12px;color:var(--text-sub);margin-bottom:16px">
+      Pulls the cohort funnel from Snowflake (from 2026-01-01 to yesterday, TikTok included; the data analyst's own code when her package is in <code>creative_feed\</code>, otherwise the rebuilt query) and writes it into the <strong>New_Data</strong> and <strong>Lead_Contract_Cohort</strong> tabs of the production sheet, replacing the Excel copy-paste. Takes a few minutes; a browser tab may open for the Snowflake login. Nothing is written if the columns don't match the tabs or the export looks cut off. <em>Compare only</em> shows the totals per channel, new vs what's in the sheet now, without writing.
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="run-btn" id="feedBtn" style="flex:1;min-width:200px">
+        <div class="spinner"></div>
+        <span id="feedBtnText">Refresh cohort tabs</span>
+      </button>
+      <button class="run-btn" id="feedDryBtn" style="flex:1;min-width:200px;background:linear-gradient(135deg,#30363d,#484f58)">
+        <div class="spinner"></div>
+        <span id="feedDryText">Compare only</span>
+      </button>
+      <button class="run-btn" id="feedLoginBtn" style="flex:1;min-width:200px;background:linear-gradient(135deg,#1f6feb,#388bfd)">
+        <div class="spinner"></div>
+        <span id="feedLoginText">Log in to Snowflake</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card log-card" id="feedLogCard">
+    <div class="card-title">Creative Feed Log</div>
+    <div class="terminal" id="feedTerminal" style="white-space:pre-wrap">
+      <span class="cursor"></span>
+    </div>
+  </div>
+
+<script>
+  // ── Date helpers ──────────────────────────────────────────────────────────
+  const TZ = "Europe/Rome";
+
+  function fmt(d) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
+  }
+
+  function todayItaly() {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: TZ }));
+  }
+
+  function yesterday() {
+    const d = todayItaly();
+    d.setDate(d.getDate() - 1);
+    return d;
+  }
+
+  function setDates(start, end) {
+    document.getElementById("startDate").value = fmt(start);
+    document.getElementById("endDate").value   = fmt(end);
+  }
+
+  // Default: yesterday
+  setDates(yesterday(), yesterday());
+
+  // Preset handlers
+  document.querySelectorAll(".preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const today = todayItaly();
+      const yest  = yesterday();
+      const preset = btn.dataset.preset;
+      if (preset === "yesterday") {
+        setDates(yest, yest);
+      } else if (preset === "last7") {
+        const s = new Date(today);
+        s.setDate(s.getDate() - 7);
+        setDates(s, yest);
+      } else if (preset === "last30") {
+        const s = new Date(today);
+        s.setDate(s.getDate() - 30);
+        setDates(s, yest);
+      } else if (preset === "last2months") {
+        const s = new Date(today);
+        s.setMonth(s.getMonth() - 2);   // calendar-aware: today minus 2 months
+        setDates(s, yest);
+      } else if (preset === "mtd") {
+        const s = new Date(today.getFullYear(), today.getMonth(), 1);
+        setDates(s, yest);
+      } else if (preset === "cutoff") {
+        // "Cutoff to Date": Start = the live sheet's current archive cutoff, End = today.
+        // This is exactly the window that's actually live in production right now — the
+        // write-time archive guard would drop anything before it anyway, so this preset
+        // avoids fetching data you already know will be discarded.
+        if (currentArchiveCutoff) {
+          setDates(new Date(currentArchiveCutoff + "T00:00:00"), today);
+        } else {
+          fetch("/archive/status").then(r => r.json()).then(data => {
+            if (data.configured) {
+              currentArchiveCutoff = data.cutoff;
+              setDates(new Date(data.cutoff + "T00:00:00"), todayItaly());
+            } else {
+              alert("Archive cutoff isn't configured yet.");
+            }
+          }).catch(() => alert("Could not load the current archive cutoff."));
+        }
+      } else if (preset === "ytd") {
+        const s = new Date(today.getFullYear(), 0, 1);
+        setDates(s, today);
+      } else if (preset.startsWith("year-")) {
+        const y = parseInt(preset.split("-")[1]);
+        setDates(new Date(y, 0, 1), new Date(y, 11, 31));
+      }
+    });
+  });
+
+  // ── Source toggles (multi-select) ─────────────────────────────────────────
+  // ALL = quick-select for the three individual sources.
+  const ALL_SOURCES = ["META", "GOOGLE ADS", "OUTBRAIN", "TIKTOK", "WHATSAPP"];
+  let selectedSources = new Set(ALL_SOURCES);
+
+  function syncSourceButtons() {
+    document.querySelectorAll(".source-btn:not(.target-btn)").forEach(b => {
+      const ds = b.dataset.source;
+      if (ds === "ALL") {
+        b.classList.toggle("active", selectedSources.size === ALL_SOURCES.length);
+      } else {
+        b.classList.toggle("active", selectedSources.has(ds));
+      }
+    });
+  }
+  document.querySelectorAll(".source-btn:not(.target-btn)").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ds = btn.dataset.source;
+      if (ds === "ALL") {
+        // Toggle: if all selected, clear; otherwise select everything.
+        if (selectedSources.size === ALL_SOURCES.length) selectedSources.clear();
+        else selectedSources = new Set(ALL_SOURCES);
+      } else {
+        if (selectedSources.has(ds)) selectedSources.delete(ds);
+        else selectedSources.add(ds);
+      }
+      syncSourceButtons();
+    });
+  });
+  syncSourceButtons();
+
+  // Map friendly source name -> CLI value
+  const SOURCE_CLI = { "META": "meta", "GOOGLE ADS": "google", "OUTBRAIN": "outbrain", "TIKTOK": "tiktok", "WHATSAPP": "whatsapp" };
+  function selectedSourcesCliCsv() {
+    return [...selectedSources].map(s => SOURCE_CLI[s]).filter(Boolean).join(",");
+  }
+  function selectedSourcesLabel() {
+    if (selectedSources.size === 0) return "(none)";
+    if (selectedSources.size === ALL_SOURCES.length) return "ALL";
+    return [...selectedSources].join(", ");
+  }
+
+  // ── Target toggle (Test / Production) ─────────────────────────────────────
+  let selectedTarget = "test";
+  const targetHint = document.getElementById("targetHint");
+  const TARGET_HINTS = {
+    test: {
+      html: "Writes to <strong>Sheet1</strong> / <strong>outbrain</strong> tabs in the test sheet.",
+      danger: false,
+    },
+    production: {
+      html: "⚠ Writes to <strong>main_metrics</strong> / <strong>main_metrics_outbrain</strong> in the PRODUCTION sheet.",
+      danger: true,
+    },
+  };
+  document.querySelectorAll(".target-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".target-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedTarget = btn.dataset.target;
+      const cfg = TARGET_HINTS[selectedTarget];
+      targetHint.innerHTML = cfg.html;
+      targetHint.classList.toggle("danger", cfg.danger);
+    });
+  });
+
+  // ── Terminal helpers ──────────────────────────────────────────────────────
+  const terminal = document.getElementById("terminal");
+  let cursor;
+
+  function initTerminal() {
+    terminal.innerHTML = "";
+    cursor = document.createElement("span");
+    cursor.className = "cursor";
+    terminal.appendChild(cursor);
+  }
+
+  function tsNow() {
+    return new Date().toTimeString().slice(0, 8);
+  }
+
+  function classifyLine(text) {
+    const t = text.toLowerCase();
+    if (t.includes("error") || t.includes("exception") || t.includes("traceback")) return "c-red";
+    if (t.includes("rows fetched") || t.includes("rows written") || t.includes("done") || t.includes("success")) return "c-green";
+    if (t.includes("fetching") || t.includes("requesting") || t.includes("writing")) return "c-yellow";
+    return "c-muted";
+  }
+
+  function appendLine(text) {
+    const row = document.createElement("div");
+    row.className = "log-line";
+
+    const ts = document.createElement("span");
+    ts.className = "log-ts";
+    ts.textContent = tsNow();
+
+    const content = document.createElement("span");
+    content.className = "log-text " + classifyLine(text);
+    content.textContent = text;
+
+    row.appendChild(ts);
+    row.appendChild(content);
+
+    terminal.insertBefore(row, cursor);
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  // ── Summary helpers ───────────────────────────────────────────────────────
+  let totalFetched = 0;
+  let totalWritten = 0;
+  let sourcesRan   = new Set();
+  let startTime    = null;
+  let hasError     = false;
+
+  function parseCounts(line) {
+    // "453 rows fetched" or "fetched 453 rows"
+    let m = line.match(/(\d[\d,]*)\s+rows?\s+fetched/i);
+    if (m) totalFetched += parseInt(m[1].replace(/,/g, ""), 10);
+
+    m = line.match(/(\d[\d,]*)\s+rows?\s+written/i);
+    if (m) totalWritten += parseInt(m[1].replace(/,/g, ""), 10);
+
+    // detect source names in log lines
+    // (OUTBRAIN was missing from this list before TikTok was added too — same fix)
+    ["META", "GOOGLE ADS", "GOOGLE", "OUTBRAIN", "TIKTOK", "WHATSAPP"].forEach(s => {
+      if (line.toUpperCase().includes(s)) sourcesRan.add(s === "GOOGLE" ? "GOOGLE ADS" : s);
+    });
+
+    if (/error|exception|traceback/i.test(line)) hasError = true;
+  }
+
+  function showSummary() {
+    const elapsed = startTime ? ((Date.now() - startTime) / 1000).toFixed(1) + "s" : "—";
+
+    document.getElementById("statFetched").textContent  = totalFetched > 0 ? totalFetched.toLocaleString() : "—";
+    document.getElementById("statWritten").textContent  = totalWritten > 0 ? totalWritten.toLocaleString() : "—";
+    document.getElementById("statSources").textContent  = sourcesRan.size  > 0 ? [...sourcesRan].join(", ") : selectedSourcesLabel();
+    document.getElementById("statDuration").textContent = elapsed;
+
+    const banner = document.getElementById("statusBanner");
+    if (hasError) {
+      banner.className = "status-banner error";
+      banner.textContent = "⚠ Completed with errors — check log above";
+    } else {
+      banner.className = "status-banner success";
+      banner.textContent = "✓ Sync completed successfully";
+    }
+
+    document.getElementById("summaryCard").classList.add("visible");
+    document.getElementById("summaryCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  // ── Run ───────────────────────────────────────────────────────────────────
+  const runBtn     = document.getElementById("runBtn");
+  const runBtnText = document.getElementById("runBtnText");
+  const logCard    = document.getElementById("logCard");
+  const summaryCard = document.getElementById("summaryCard");
+
+  runBtn.addEventListener("click", async () => {
+    const startDate = document.getElementById("startDate").value;
+    const endDate   = document.getElementById("endDate").value;
+
+    if (!startDate || !endDate) {
+      alert("Please select both start and end dates.");
+      return;
+    }
+    if (startDate > endDate) {
+      alert("Start date must be on or before end date.");
+      return;
+    }
+    if (selectedSources.size === 0) {
+      alert("Pick at least one data source.");
+      return;
+    }
+    if (selectedTarget === "production") {
+      const ok = confirm(
+        `You are about to write to the PRODUCTION sheet (main_metrics / main_metrics_outbrain).\n\n` +
+        `Date range: ${startDate} → ${endDate}\nSource(s): ${selectedSourcesLabel()}\n\nProceed?`
+      );
+      if (!ok) return;
+    }
+
+    // Reset state
+    totalFetched = 0;
+    totalWritten = 0;
+    sourcesRan   = new Set();
+    hasError     = false;
+    startTime    = Date.now();
+
+    // UI: running
+    runBtn.disabled = true;
+    runBtn.classList.add("running");
+    runBtnText.textContent = "Running...";
+
+    initTerminal();
+    logCard.classList.add("visible");
+    logCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    summaryCard.classList.remove("visible");
+
+    try {
+      const resp = await fetch("/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start_date: startDate,
+          end_date:   endDate,
+          source:     selectedSourcesCliCsv() || "all",
+          target:     selectedTarget,
+        }),
+      });
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let   buffer  = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop(); // keep incomplete chunk
+
+        for (const part of parts) {
+          for (const rawLine of part.split("\n")) {
+            const line = rawLine.trim();
+            if (!line.startsWith("data:")) continue;
+            const text = line.slice(5).trim();
+
+            if (text === "__DONE__") {
+              showSummary();
+              // fall through to finally to reset button
+              reader.cancel();
+              goto_done();
+              return;
+            }
+            appendLine(text);
+            parseCounts(text);
+          }
+        }
+      }
+      showSummary();
+    } catch (err) {
+      appendLine("ERROR: " + err.message);
+      hasError = true;
+      showSummary();
+    } finally {
+      goto_done();
+    }
+  });
+
+  // ── Credentials panel ─────────────────────────────────────────────────────
+  const CRED_KEYS = [
+    "META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID",
+    "OUTBRAIN_API_KEY", "OUTBRAIN_ACCOUNT_ID",
+    "GOOGLE_ADS_REFRESH_TOKEN",
+    "TIKTOK_ACCESS_TOKEN", "TIKTOK_ADVERTISER_ID",
+    "GOOGLE_SHEETS_ID", "WHATSAPP_SHEETS_ID",
+  ];
+
+  document.getElementById("credToggle").addEventListener("click", () => {
+    const open = document.getElementById("credBody").classList.toggle("open");
+    document.getElementById("credToggle").classList.toggle("open", open);
+  });
+
+  document.querySelectorAll(".cred-vis-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const inp = document.getElementById(btn.dataset.target);
+      inp.type = inp.type === "password" ? "text" : "password";
+    });
+  });
+
+  fetch("/config").then(r => r.json()).then(data => {
+    CRED_KEYS.forEach(k => {
+      const el = document.getElementById("cred_" + k);
+      if (el && data[k]) el.value = data[k];
+    });
+  }).catch(() => {});
+
+  document.getElementById("saveCredBtn").addEventListener("click", async () => {
+    const payload = {};
+    CRED_KEYS.forEach(k => {
+      const el = document.getElementById("cred_" + k);
+      if (el && el.value.trim()) payload[k] = el.value.trim();
+    });
+    const credStatus = document.getElementById("credStatus");
+    const saveBtn = document.getElementById("saveCredBtn");
+    if (!Object.keys(payload).length) {
+      credStatus.textContent = "Nothing to save.";
+      credStatus.className = "cred-status err";
+      return;
+    }
+    saveBtn.disabled = true;
+    credStatus.textContent = "";
+    credStatus.className = "cred-status";
+    try {
+      const r = await fetch("/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const res = await r.json();
+      if (res.ok) { credStatus.textContent = "✓ Credentials saved"; credStatus.className = "cred-status ok"; }
+      else { credStatus.textContent = "✗ " + (res.error || "Save failed"); credStatus.className = "cred-status err"; }
+    } catch (e) {
+      credStatus.textContent = "✗ " + e.message;
+      credStatus.className = "cred-status err";
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  function goto_done() {
+    runBtn.disabled = false;
+    runBtn.classList.remove("running");
+    runBtnText.textContent = "Fetch Data";
+    // remove blinking cursor
+    if (cursor && cursor.parentNode) cursor.parentNode.removeChild(cursor);
+  }
+
+  // ── Archive & Trim ─────────────────────────────────────────────────────────
+  const archiveBtn         = document.getElementById("archiveBtn");
+  const archiveBtnText     = document.getElementById("archiveBtnText");
+  const archiveLogCard     = document.getElementById("archiveLogCard");
+  const archiveTerminal    = document.getElementById("archiveTerminal");
+  const archiveCutoffInput = document.getElementById("archiveCutoffInput");
+  const archiveCurrentInfo = document.getElementById("archiveCurrentInfo");
+  let archiveCursor;
+  let currentArchiveCutoff = null;
+
+  function initArchiveTerminal() {
+    archiveTerminal.innerHTML = "";
+    archiveCursor = document.createElement("span");
+    archiveCursor.className = "cursor";
+    archiveTerminal.appendChild(archiveCursor);
+  }
+
+  function appendArchiveLine(text) {
+    const row = document.createElement("div");
+    row.className = "log-line";
+    const ts = document.createElement("span");
+    ts.className = "log-ts";
+    ts.textContent = tsNow();
+    const content = document.createElement("span");
+    content.className = "log-text " + classifyLine(text);
+    content.textContent = text;
+    row.appendChild(ts);
+    row.appendChild(content);
+    archiveTerminal.insertBefore(row, archiveCursor);
+    archiveTerminal.scrollTop = archiveTerminal.scrollHeight;
+  }
+
+  function loadArchiveStatus() {
+    fetch("/archive/status").then(r => r.json()).then(data => {
+      if (!data.configured) {
+        archiveCurrentInfo.textContent = "Archive not configured yet (_archive_config tab missing in the production sheet).";
+        return;
+      }
+      currentArchiveCutoff = data.cutoff;
+      archiveCurrentInfo.innerHTML = `Currently archived: everything before <strong>${data.cutoff}</strong>. ` +
+        `<a href="https://docs.google.com/spreadsheets/d/${data.archive_sheet_id}" target="_blank" style="color:var(--blue)">Open archive spreadsheet</a>`;
+      const d = new Date(data.cutoff + "T00:00:00");
+      d.setDate(d.getDate() + 1);
+      archiveCutoffInput.min = fmt(d);
+    }).catch(() => {
+      archiveCurrentInfo.textContent = "Could not load archive status.";
+    });
+  }
+  loadArchiveStatus();
+
+  function archiveDone() {
+    archiveBtn.disabled = false;
+    archiveBtn.classList.remove("running");
+    archiveBtnText.textContent = "Archive & Trim";
+    if (archiveCursor && archiveCursor.parentNode) archiveCursor.parentNode.removeChild(archiveCursor);
+  }
+
+  archiveBtn.addEventListener("click", async () => {
+    const newCutoff = archiveCutoffInput.value;
+    if (!newCutoff) { alert("Pick a new cutoff date."); return; }
+    if (currentArchiveCutoff && newCutoff <= currentArchiveCutoff) {
+      alert(`New cutoff must be strictly after the current cutoff (${currentArchiveCutoff}) — archive and live ranges can never overlap.`);
+      return;
+    }
+    const today = fmt(todayItaly());
+    if (newCutoff > today) { alert("Cutoff can't be in the future."); return; }
+
+    const ok = confirm(
+      `This will move everything dated before ${newCutoff} from the LIVE production sheet into the archive spreadsheet, and trim the live sheet down to ${newCutoff} onward.\n\nProceed?`
+    );
+    if (!ok) return;
+
+    archiveBtn.disabled = true;
+    archiveBtn.classList.add("running");
+    archiveBtnText.textContent = "Archiving...";
+    initArchiveTerminal();
+    archiveLogCard.classList.add("visible");
+    archiveLogCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    try {
+      const resp = await fetch("/archive/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_cutoff: newCutoff }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let   buffer  = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop();
+        for (const part of parts) {
+          for (const rawLine of part.split("\n")) {
+            const line = rawLine.trim();
+            if (!line.startsWith("data:")) continue;
+            const text = line.slice(5).trim();
+            if (text === "__DONE__") {
+              reader.cancel();
+              loadArchiveStatus();
+              archiveDone();
+              return;
+            }
+            appendArchiveLine(text);
+          }
+        }
+      }
+      loadArchiveStatus();
+    } catch (err) {
+      appendArchiveLine("ERROR: " + err.message);
+    } finally {
+      archiveDone();
+    }
+  });
+
+  // ── Creative feed (Snowflake cohort export → New_Data + Lead_Contract_Cohort) ──
+  const feedInfo = document.getElementById("feedInfo");
+  const feedTerminal = document.getElementById("feedTerminal");
+  const feedLogCard = document.getElementById("feedLogCard");
+  const feedButtons = ["feedBtn", "feedDryBtn", "feedLoginBtn"].map(id => document.getElementById(id));
+
+  function loadFeedStatus() {
+    fetch("/creative-feed/status").then(r => r.json()).then(s => {
+      const src = s.package_ready ? "Source: the data analyst's package (her code, unchanged)."
+        : "Source: rebuilt query (the data analyst's package isn't here; same funnel rebuilt from the team's rules, within ~1% of her files).";
+      if (!s.last_run) { feedInfo.textContent = "Not run yet. " + src; return; }
+      const color = s.status === "ok" ? "var(--green)" : s.status === "dry-run" ? "var(--text-sub)" : "var(--red)";
+      const rows = s.rows ? ` · New_Data ${(s.rows.New_Data || 0).toLocaleString()} rows, Lead_Contract_Cohort ${(s.rows.Lead_Contract_Cohort || 0).toLocaleString()} rows` : "";
+      feedInfo.innerHTML = `Last run: <strong>${s.last_run}</strong> · <strong style="color:${color}">${s.status === "ok" ? "written to the sheet" : s.status === "dry-run" ? "compared only" : "error"}</strong>${rows}` +
+        (s.message && s.status === "error" ? `<br><span style="color:var(--red)">${s.message.replace(/</g, "&lt;")}</span>` : "") +
+        `<br><span style="font-size:12px">${src}</span>`;
+    }).catch(() => { feedInfo.textContent = "Could not load the creative feed status."; });
+  }
+  loadFeedStatus();
+
+  function feedLine(text) {
+    const row = document.createElement("div");
+    row.className = "log-line";
+    row.innerHTML = `<span class="log-ts">${tsNow()}</span>`;
+    const content = document.createElement("span");
+    content.className = "log-text " + classifyLine(text);
+    content.textContent = text;
+    row.appendChild(content);
+    feedTerminal.appendChild(row);
+    feedTerminal.scrollTop = feedTerminal.scrollHeight;
+  }
+
+  function feedBusy(on, btn, label) {
+    feedButtons.forEach(b => { b.disabled = on; });
+    btn.classList.toggle("running", on);
+    btn.querySelector("span").textContent = label;
+  }
+
+  async function runFeed(dryRun) {
+    if (!dryRun && !confirm("Replace the New_Data and Lead_Contract_Cohort tabs in the LIVE production sheet with a fresh Snowflake export?")) return;
+    const btn = dryRun ? feedButtons[1] : feedButtons[0];
+    const label = btn.querySelector("span").textContent;
+    feedBusy(true, btn, dryRun ? "Comparing..." : "Refreshing...");
+    feedTerminal.innerHTML = "";
+    feedLogCard.classList.add("visible");
+    feedLogCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    try {
+      const resp = await fetch("/creative-feed/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dry_run: dryRun }) });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const reader = resp.body.getReader(), decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop();
+        for (const part of parts) {
+          if (!part.startsWith("data:")) continue;
+          const text = part.slice(part.startsWith("data: ") ? 6 : 5);   // keep leading spaces: the comparison is a table
+          if (text === "__DONE__") continue;
+          feedLine(text);
+        }
+      }
+    } catch (err) {
+      feedLine("ERROR: " + err.message);
+    } finally {
+      feedBusy(false, btn, label);
+      loadFeedStatus();
+    }
+  }
+  feedButtons[0].addEventListener("click", () => runFeed(false));
+  feedButtons[1].addEventListener("click", () => runFeed(true));
+
+  feedButtons[2].addEventListener("click", async () => {
+    const btn = feedButtons[2];
+    feedBusy(true, btn, "Waiting for the browser login...");
+    try {
+      const r = await (await fetch("/seo/snowflake/login", { method: "POST" })).json();
+      feedInfo.insertAdjacentHTML("afterbegin", r.ok
+        ? `<div style="color:var(--green)">Snowflake: connected as ${r.user} (${r.role}).</div>`
+        : `<div style="color:var(--red)">Snowflake: not connected (${String(r.error).replace(/</g, "&lt;")}).</div>`);
+    } catch (e) { alert(e.message); }
+    feedBusy(false, btn, "Log in to Snowflake");
+  });
+
+</script>
+</body>
+</html>
